@@ -5,3 +5,4 @@ authors = ["Harvey Hunt <harveyhuntnexus@gmail.com>"]
 
 [dependencies]
 glium = "0.14.0"
+cgmath = "0.10.0"

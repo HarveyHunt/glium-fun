@@ -1,7 +1,9 @@
 #[macro_use]
 extern crate glium;
+extern crate cgmath;
 
 use glium::{Surface, DisplayBuild};
+use cgmath::SquareMatrix;
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
@@ -12,6 +14,8 @@ const VERT_SHADER_SRC: &'static str = include_str!("shaders/vert.glsl");
 const FRAG_SHADER_SRC: &'static str = include_str!("shaders/frag.glsl");
 
 fn main() {
+    let mut t: f32 = 0.1;
+    let mut i: f32 = -1.0;
     let display = glium::glutin::WindowBuilder::new().build_glium().unwrap();
 
     implement_vertex!(Vertex, pos);
@@ -28,13 +32,21 @@ fn main() {
         .unwrap();
 
     loop {
+        t += 0.03 * i;
+        if t > 0.5 || t < -0.5 {
+            i = -i;
+        }
+
+        let mut matrix = cgmath::Matrix4::identity();
+        matrix.w.x = t;
+
+        let uniforms = uniform! {
+            matrix: Into::<[[f32; 4]; 4]>::into(matrix),
+        };
+
         let mut target = display.draw();
         target.clear_color(1.0, 1.0, 1.0, 1.0);
-        target.draw(&vbo,
-                  &indices,
-                  &program,
-                  &glium::uniforms::EmptyUniforms,
-                  &Default::default())
+        target.draw(&vbo, &indices, &program, &uniforms, &Default::default())
             .unwrap();
 
         target.finish().unwrap();
