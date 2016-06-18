@@ -3,7 +3,7 @@ extern crate glium;
 extern crate cgmath;
 
 use glium::{Surface, DisplayBuild};
-use cgmath::SquareMatrix;
+use cgmath::{Vector4, SquareMatrix};
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
@@ -38,7 +38,8 @@ fn main() {
         }
 
         let mut matrix = cgmath::Matrix4::identity();
-        matrix.w.x = t;
+        matrix.x = Vector4::new(t.cos(), t.sin(), 0.0, 0.0);
+        matrix.y = Vector4::new(-t.sin(), t.cos(), 0.0, 0.0);
 
         let uniforms = uniform! {
             matrix: Into::<[[f32; 4]; 4]>::into(matrix),
