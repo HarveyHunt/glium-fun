@@ -1,13 +1,16 @@
 #[macro_use]
 extern crate glium;
 extern crate cgmath;
+extern crate image;
 
 use glium::{Surface, DisplayBuild};
 use cgmath::{Vector4, SquareMatrix};
+use std::io::Cursor;
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
     pos: [f32; 2],
+    tex_coords: [f32; 2],
 }
 
 const VERT_SHADER_SRC: &'static str = include_str!("shaders/vert.glsl");
@@ -18,12 +21,21 @@ fn main() {
     let mut i: f32 = -1.0;
     let display = glium::glutin::WindowBuilder::new().build_glium().unwrap();
 
-    implement_vertex!(Vertex, pos);
+    implement_vertex!(Vertex, pos, tex_coords);
+
+    let image = image::load(Cursor::new(&include_bytes!("../res/opengl.png")[..]),
+                            image::PNG)
+        .unwrap()
+        .to_rgba();
+    let image_size = image.dimensions();
+    println!("{:?}", image_size);
+    let image = glium::texture::RawImage2d::from_raw_rgba_reversed(image.into_raw(), image_size);
+    let texture = glium::texture::Texture2d::new(&display, image).unwrap();
 
     let triangle = vec![
-        Vertex {pos: [0.5, -0.5]},
-        Vertex {pos: [0.0, 0.5]},
-        Vertex {pos: [-0.5, -0.5]},
+        Vertex {pos: [0.5, -0.5], tex_coords: [0.0, 0.0]},
+        Vertex {pos: [0.0, 0.5], tex_coords: [0.0, 1.0]},
+        Vertex {pos: [-0.5, -0.5], tex_coords: [1.0, 0.0]},
     ];
 
     let vbo = glium::VertexBuffer::new(&display, &triangle).unwrap();
@@ -43,6 +55,7 @@ fn main() {
 
         let uniforms = uniform! {
             matrix: Into::<[[f32; 4]; 4]>::into(matrix),
+            tex: &texture,
         };
 
         let mut target = display.draw();
